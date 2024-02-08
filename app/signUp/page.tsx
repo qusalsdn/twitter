@@ -14,6 +14,7 @@ interface Inputs {
 
 export default function SignUp() {
   const router = useRouter();
+  if (auth.currentUser !== null) router.replace("/");
   const { register, handleSubmit } = useForm<Inputs>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
