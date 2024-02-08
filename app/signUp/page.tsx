@@ -1,5 +1,8 @@
 "use client";
 
+import { auth } from "@/src/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -10,16 +13,28 @@ interface Inputs {
 }
 
 export default function SignUp() {
+  const router = useRouter();
   const { register, handleSubmit } = useForm<Inputs>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const onSubmit = (formData: Inputs) => {
-    setLoading(true);
+  const onSubmit = async (formData: Inputs) => {
+    if (formData.name === "" || formData.email === "" || formData.password === "")
+      return alert("회원가입 정보를 입력해주세요.");
     try {
-      console.log(formData);
-    } catch (error) {
-      setError(setError.toString());
+      setLoading(true);
+      const credentials = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      console.log(credentials.user);
+      await updateProfile(credentials.user, {
+        displayName: formData.name,
+      });
+      router.replace("/");
+    } catch (error: any) {
+      setError(error);
     } finally {
       setLoading(false);
     }
@@ -27,7 +42,7 @@ export default function SignUp() {
 
   return (
     <div className="flex flex-col items-center mt-16 space-y-5">
-      <h1 className="text-3xl">회원가입 👻</h1>
+      <h1 className="text-3xl font-bold">회원가입 👻</h1>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="text-black flex flex-col items-center justify-center w-96 space-y-4"
