@@ -1,5 +1,6 @@
 "use client";
 
+import GithubBtn from "@/components/github-btn";
 import { auth } from "@/src/firebase";
 import { FirebaseError } from "firebase/app";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
@@ -87,7 +88,10 @@ export default function SignUp() {
           {...register("password", { required: true })}
           className="signUpInputs"
         />
-        <button type="submit" className="signUpInputs bg-white hover:opacity-80 font-bold">
+        <button
+          type="submit"
+          className="signUpInputs bg-[#1d9bf0] hover:opacity-80 font-bold text-white"
+        >
           {loading ? "로딩중..." : "회원가입"}
         </button>
       </form>
@@ -95,6 +99,7 @@ export default function SignUp() {
       <Link href={"/signIn"} className="font-bold">
         이미 계정이 있으신가요? &rarr;
       </Link>
+      <GithubBtn />
     </div>
   );
 }
