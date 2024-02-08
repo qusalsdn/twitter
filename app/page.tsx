@@ -2,14 +2,19 @@
 
 import { auth } from "@/src/firebase";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const user = auth.currentUser;
-  if (user === null) router.replace("/signIn");
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user === null) router.replace("/signIn");
+  }, [router]);
 
   const onClickLogout = () => {
     auth.signOut();
+    router.replace("/signIn");
   };
 
   return (

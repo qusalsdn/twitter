@@ -1,9 +1,11 @@
 "use client";
 
 import { auth } from "@/src/firebase";
+import { FirebaseError } from "firebase/app";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface Inputs {
@@ -12,30 +14,46 @@ interface Inputs {
   password: string;
 }
 
+const errors: any = {
+  "auth/email-already-in-use": "이미 존재하는 이메일입니다.",
+  "auth/weak-password": "비밀번호는 적어도 6글자 이상이어야 합니다.",
+};
+
 export default function SignUp() {
   const router = useRouter();
-  if (auth.currentUser !== null) router.replace("/");
   const { register, handleSubmit } = useForm<Inputs>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user !== null) router.replace("/");
+  }, [router]);
+
   const onSubmit = async (formData: Inputs) => {
-    if (formData.name === "" || formData.email === "" || formData.password === "")
-      return alert("회원가입 정보를 입력해주세요.");
+    if (loading || formData.name === "" || formData.email === "" || formData.password === "")
+      return;
     try {
       setLoading(true);
+      setError("");
       const credentials = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
-      console.log(credentials.user);
       await updateProfile(credentials.user, {
         displayName: formData.name,
       });
       router.replace("/");
-    } catch (error: any) {
-      setError(error);
+    } catch (e) {
+      if (e instanceof FirebaseError) {
+        for (const key in errors) {
+          if (key === e.code) {
+            setError(errors[key]);
+            break;
+          }
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -69,11 +87,14 @@ export default function SignUp() {
           {...register("password", { required: true })}
           className="signUpInputs"
         />
-        <button type="submit" className="signUpInputs bg-white hover:opacity-80">
+        <button type="submit" className="signUpInputs bg-white hover:opacity-80 font-bold">
           {loading ? "로딩중..." : "회원가입"}
         </button>
       </form>
       {error !== "" && <p className="font-bold text-red-500">{error}</p>}
+      <Link href={"/signIn"} className="font-bold">
+        이미 계정이 있으신가요? &rarr;
+      </Link>
     </div>
   );
 }
