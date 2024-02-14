@@ -10,14 +10,9 @@ export default function Home() {
 
   useEffect(() => {
     const user = auth.currentUser;
-    if (user === null) router.replace("/signIn");
+    if (user === null) router.push("/signIn");
     else setLoginCheck(true);
   }, [router]);
 
-  const onClickLogout = () => {
-    auth.signOut();
-    router.replace("/signIn");
-  };
-
-  return <div>{loginCheck && <button onClick={onClickLogout}>로그아웃</button>}</div>;
+  return <div>{loginCheck && <h1>Home</h1>}</div>;
 }

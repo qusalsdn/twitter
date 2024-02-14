@@ -29,7 +29,6 @@ export default function SignIn() {
 
   const onSubmit = async (formData: Inputs) => {
     if (loading || formData.email === "" || formData.password === "") return;
-
     try {
       setLoading(true);
       setError("");
