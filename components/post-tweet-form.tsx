@@ -1,9 +1,16 @@
+import { auth, db } from "@/src/firebase";
+import { addDoc, collection } from "firebase/firestore";
 import Image from "next/image";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+interface Tweet {
+  tweet: string;
+  imageFile: any[];
+}
+
 export default function PostTweetForm() {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, reset } = useForm<Tweet>();
   const [loading, setLoading] = useState(false);
   const [imageSrc, setImageSrc]: any = useState(null);
 
@@ -20,8 +27,24 @@ export default function PostTweetForm() {
     });
   };
 
-  const onSubmit = (fomrData: any) => {
-    console.log(fomrData);
+  const onSubmit = async (formData: Tweet) => {
+    console.log(formData);
+    const user = auth.currentUser;
+    if (!user || loading || formData.tweet === "" || formData.tweet.length > 256) return;
+    try {
+      setLoading(true);
+      await addDoc(collection(db, "tweets"), {
+        tweet: formData.tweet,
+        createdAt: Date.now(),
+        userName: user.displayName || "익명",
+        userId: user.uid,
+      });
+      reset();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,7 +64,13 @@ export default function PostTweetForm() {
       >
         이미지 추가
       </label>
-      <input type="file" id="file" accept="image/*" className="hidden" onChange={onUpload} />
+      <input
+        type="file"
+        id="file"
+        accept="image/*"
+        className="hidden"
+        {...register("imageFile", { onChange: onUpload })}
+      />
       <button
         type="submit"
         className="bg-sky-500 text-white py-5 rounded-3xl font-bold hover:opacity-90 duration-300"

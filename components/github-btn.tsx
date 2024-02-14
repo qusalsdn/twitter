@@ -16,7 +16,6 @@ export default function GithubBtn() {
       await signInWithPopup(auth, provider);
       router.replace("/");
     } catch (e) {
-      console.log(e);
       setError("동일하게 가입한 이메일이 존재합니다.");
     }
   };
