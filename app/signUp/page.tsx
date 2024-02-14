@@ -25,10 +25,12 @@ export default function SignUp() {
   const { register, handleSubmit } = useForm<Inputs>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loginCheck, setLoginCheck] = useState(false);
 
   useEffect(() => {
     const user = auth.currentUser;
     if (user !== null) router.replace("/");
+    else setLoginCheck(true);
   }, [router]);
 
   const onSubmit = async (formData: Inputs) => {
@@ -61,45 +63,49 @@ export default function SignUp() {
   };
 
   return (
-    <div className="flex flex-col items-center mt-16 space-y-5">
-      <h1 className="text-3xl font-bold">회원가입 👻</h1>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="text-black flex flex-col items-center justify-center w-96 space-y-4"
-      >
-        <input
-          type="text"
-          placeholder="이름"
-          required
-          {...register("name", { required: true })}
-          className="signUpInputs"
-        />
-        <input
-          type="email"
-          placeholder="이메일"
-          required
-          {...register("email", { required: true })}
-          className="signUpInputs"
-        />
-        <input
-          type="password"
-          placeholder="비밀번호"
-          required
-          {...register("password", { required: true })}
-          className="signUpInputs"
-        />
-        <button
-          type="submit"
-          className="signUpInputs bg-[#1d9bf0] hover:opacity-80 font-bold text-white"
-        >
-          {loading ? "로딩중..." : "회원가입"}
-        </button>
-      </form>
-      {error !== "" && <p className="font-bold text-red-500">{error}</p>}
-      <Link href={"/signIn"} className="font-bold">
-        이미 계정이 있으신가요? &rarr;
-      </Link>
-      <GithubBtn />
+    <div>
+      {loginCheck && (
+        <div className="flex flex-col items-center mt-16 space-y-5">
+          <h1 className="text-3xl font-bold">회원가입 👻</h1>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="text-black flex flex-col items-center justify-center w-96 space-y-4"
+          >
+            <input
+              type="text"
+              placeholder="이름"
+              required
+              {...register("name", { required: true })}
+              className="signUpInputs"
+            />
+            <input
+              type="email"
+              placeholder="이메일"
+              required
+              {...register("email", { required: true })}
+              className="signUpInputs"
+            />
+            <input
+              type="password"
+              placeholder="비밀번호"
+              required
+              {...register("password", { required: true })}
+              className="signUpInputs"
+            />
+            <button
+              type="submit"
+              className="signUpInputs bg-[#1d9bf0] hover:opacity-80 font-bold text-white"
+            >
+              {loading ? "로딩중..." : "회원가입"}
+            </button>
+          </form>
+          {error !== "" && <p className="font-bold text-red-500">{error}</p>}
+          <Link href={"/signIn"} className="font-bold">
+            이미 계정이 있으신가요? &rarr;
+          </Link>
+          <GithubBtn />
+        </div>
+      )}
     </div>
   );
 }

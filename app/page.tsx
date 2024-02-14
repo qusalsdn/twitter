@@ -2,14 +2,16 @@
 
 import { auth } from "@/src/firebase";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const router = useRouter();
+  const [loginCheck, setLoginCheck] = useState(false);
 
   useEffect(() => {
     const user = auth.currentUser;
     if (user === null) router.replace("/signIn");
+    else setLoginCheck(true);
   }, [router]);
 
   const onClickLogout = () => {
@@ -17,9 +19,5 @@ export default function Home() {
     router.replace("/signIn");
   };
 
-  return (
-    <h1>
-      <button onClick={onClickLogout}>로그아웃</button>
-    </h1>
-  );
+  return <div>{loginCheck && <button onClick={onClickLogout}>로그아웃</button>}</div>;
 }
