@@ -7,7 +7,6 @@ import { useEffect } from "react";
 export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const user = auth.currentUser;
-    console.log(user);
   }, []);
 
   return (

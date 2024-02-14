@@ -1,5 +1,6 @@
 "use client";
 
+import PostTweetForm from "@/components/post-tweet-form";
 import { auth } from "@/src/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,5 +15,5 @@ export default function Home() {
     else setLoginCheck(true);
   }, [router]);
 
-  return <div>{loginCheck && <h1>Home</h1>}</div>;
+  return <div className="w-[1000px]">{loginCheck && <PostTweetForm />}</div>;
 }
