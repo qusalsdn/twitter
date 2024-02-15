@@ -74,7 +74,7 @@ export default function PostTweetForm() {
       )}
       <label
         htmlFor="file"
-        className="py-5 text-sky-500 text-center border-solid border border-sky-500 rounded-3xl font-bold cursor-pointer"
+        className="py-5 text-sky-500 text-center border-solid border-2 border-sky-500 rounded-3xl font-bold cursor-pointer"
       >
         이미지 추가
       </label>
