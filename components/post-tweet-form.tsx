@@ -31,8 +31,9 @@ export default function PostTweetForm() {
   const onSubmit = async (formData: Tweet) => {
     const user = auth.currentUser;
     if (!user || loading || formData.tweet === "" || formData.tweet.length > 256) return;
-    if (formData.imageFile[0].size > 1024 ** 2)
-      return alert("이미지 크기의 용량은 1MB 이하여야 합니다.");
+    if (formData.imageFile.length !== 0)
+      if (formData.imageFile[0].size > 1024 ** 2)
+        return alert("이미지 크기의 용량은 1MB 이하여야 합니다.");
     try {
       setLoading(true);
       const doc = await addDoc(collection(db, "tweets"), {
@@ -41,7 +42,7 @@ export default function PostTweetForm() {
         userName: user.displayName || "익명",
         userId: user.uid,
       });
-      if (formData.imageFile) {
+      if (formData.imageFile.length !== 0) {
         // 스토리지에 사진 저장
         const locationRef = ref(storage, `tweets/${user.uid}-${user.displayName}/${doc.id}`);
         // 저장된 사진의 결과값 result에 저장
