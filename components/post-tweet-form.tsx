@@ -2,6 +2,7 @@ import { auth, db, storage } from "@/src/firebase";
 import { addDoc, collection, updateDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -11,7 +12,8 @@ interface Tweet {
 }
 
 export default function PostTweetForm() {
-  const { register, handleSubmit, reset } = useForm<Tweet>();
+  const router = useRouter();
+  const { register, handleSubmit } = useForm<Tweet>();
   const [loading, setLoading] = useState(false);
   const [imageSrc, setImageSrc]: any = useState(null);
 
@@ -52,8 +54,7 @@ export default function PostTweetForm() {
         // Firestore Database에 저장된 doc의 값을 url을 추가하여 업데이트
         await updateDoc(doc, { photo: url });
       }
-      reset();
-      setImageSrc(null);
+      router.replace("/");
     } catch (e) {
       console.error(e);
     } finally {
@@ -63,6 +64,17 @@ export default function PostTweetForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col space-y-3">
+      {imageSrc !== null && (
+        <div className="text-center">
+          <Image
+            src={imageSrc !== null && imageSrc}
+            alt="uploadImage"
+            width={300}
+            height={300}
+            className="rounded-3xl"
+          />
+        </div>
+      )}
       <textarea
         placeholder="트윗을 입력해주세요."
         className="border-2 border-white p-5 rounded-3xl text-lg text-white bg-black w-full h-40 resize-none focus:outline-none focus:border-sky-500 duration-300"
@@ -70,9 +82,6 @@ export default function PostTweetForm() {
         required
         {...register("tweet")}
       ></textarea>
-      {imageSrc !== null && (
-        <Image src={imageSrc !== null && imageSrc} alt="uploadImage" width={200} height={200} />
-      )}
       <label
         htmlFor="file"
         className="py-5 text-sky-500 text-center border-solid border-2 border-sky-500 rounded-3xl font-bold cursor-pointer"

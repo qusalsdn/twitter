@@ -1,12 +1,11 @@
 "use client";
 
 import PostTweetForm from "@/components/post-tweet-form";
-import Timeline from "@/components/timeline";
 import { auth } from "@/src/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function Home() {
+export default function Write() {
   const router = useRouter();
   const [loginCheck, setLoginCheck] = useState(false);
 
@@ -20,7 +19,7 @@ export default function Home() {
     <div className="w-[1000px]">
       {loginCheck && (
         <div className="space-y-10">
-          <Timeline />
+          <PostTweetForm />
         </div>
       )}
     </div>
