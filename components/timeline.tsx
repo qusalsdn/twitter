@@ -54,7 +54,7 @@ export default function Timeline() {
   }, []);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 h-[500px] scrollBar px-5">
       {loading ? <h1>Loading...</h1> : tweets.map((item) => <Tweet key={item.id} {...item} />)}
     </div>
   );

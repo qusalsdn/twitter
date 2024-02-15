@@ -134,3 +134,21 @@ table {
   font-size: 16px;
   outline: none;
 }
+
+.scrollBar {
+  overflow-y: scroll;
+}
+
+.scrollBar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.scrollBar::-webkit-scrollbar-thumb {
+  height: 30%;
+  background: #0ea5e9;
+  border-radius: 10px;
+}
+
+.scrollBar::-webkit-scrollbar-track {
+  background: rgba(33, 122, 244, 0.1);
+}
