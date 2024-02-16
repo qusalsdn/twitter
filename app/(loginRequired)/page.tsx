@@ -17,7 +17,7 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="w-[1000px]">
+    <div className="w-full pr-36">
       {loginCheck && (
         <div className="space-y-10">
           <Timeline />
