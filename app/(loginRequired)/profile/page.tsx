@@ -2,18 +2,9 @@
 
 import { ITweet } from "@/components/timeline";
 import Tweet from "@/components/tweet";
-import { auth, db, storage } from "@/src/firebase";
-import { updateProfile } from "firebase/auth";
-import {
-  collection,
-  doc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+import { db, storage } from "@/src/firebase";
+import { getAuth, updateProfile } from "firebase/auth";
+import { collection, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -26,8 +17,9 @@ interface FormData {
 }
 
 export default function Profile() {
-  const user = auth.currentUser;
   const router = useRouter();
+  const auth = getAuth();
+  const user = auth.currentUser;
   const { register, handleSubmit, setValue } = useForm<FormData>();
   const [loginCheck, setLoginCheck] = useState(false);
   const [avatar, setAvatar] = useState(user?.photoURL);
@@ -58,9 +50,11 @@ export default function Profile() {
   };
 
   useEffect(() => {
+    console.log(user);
     if (user === null) router.replace("/signIn");
     else setLoginCheck(true);
     fetchTweets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, user]);
 
   const onChangeAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {

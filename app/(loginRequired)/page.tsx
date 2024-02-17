@@ -1,20 +1,20 @@
 "use client";
 
-import PostTweetForm from "@/components/post-tweet-form";
 import Timeline from "@/components/timeline";
-import { auth } from "@/src/firebase";
+import { getAuth } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const router = useRouter();
+  const auth = getAuth();
+  const user = auth.currentUser;
   const [loginCheck, setLoginCheck] = useState(false);
 
   useEffect(() => {
-    const user = auth.currentUser;
     if (user === null) router.push("/signIn");
     else setLoginCheck(true);
-  }, [router]);
+  }, [router, user]);
 
   return (
     <div className="w-full pr-36">

@@ -1,9 +1,8 @@
 "use client";
 
 import GithubBtn from "@/components/github-btn";
-import { auth } from "@/src/firebase";
 import { FirebaseError } from "firebase/app";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,16 +15,17 @@ interface Inputs {
 
 export default function SignIn() {
   const router = useRouter();
+  const auth = getAuth();
+  const user = auth.currentUser;
   const { register, handleSubmit } = useForm<Inputs>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loginCheck, setLoginCheck] = useState(false);
 
   useEffect(() => {
-    const user = auth.currentUser;
     if (user !== null) router.replace("/");
     else setLoginCheck(true);
-  }, [router]);
+  }, [router, user]);
 
   const onSubmit = async (formData: Inputs) => {
     if (loading || formData.email === "" || formData.password === "") return;
