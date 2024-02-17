@@ -7,14 +7,14 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const auth = getAuth();
-  const user = auth.currentUser;
   const [loginCheck, setLoginCheck] = useState(false);
 
   useEffect(() => {
+    const auth = getAuth();
+    const user = auth.currentUser;
     if (user === null) router.push("/signIn");
     else setLoginCheck(true);
-  }, [router, user]);
+  }, [router]);
 
   return (
     <div className="w-full pr-36">
