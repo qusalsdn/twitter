@@ -33,9 +33,8 @@ export default function SignUp() {
 
   const auth = getAuth();
   onAuthStateChanged(auth, (user) => {
-    if (user) {
-      setLoginCheck(true);
-    } else router.push("/");
+    if (user) router.push("/");
+    else setLoginCheck(true);
   });
 
   const onSubmit = async (formData: Inputs) => {

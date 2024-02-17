@@ -1,6 +1,6 @@
 "use client";
 
-import { auth } from "@/src/firebase";
+import { getAuth } from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -10,7 +10,7 @@ export default function Navbar() {
   const onClickLogoutBtn = async () => {
     const ok = confirm("정말 로그아웃을 진행하시겠습니까?");
     if (ok) {
-      await auth.signOut();
+      await getAuth().signOut();
       router.replace("/signIn");
     }
   };
