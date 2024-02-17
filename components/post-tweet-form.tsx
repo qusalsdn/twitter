@@ -72,14 +72,16 @@ export default function PostTweetForm({ id }: any) {
           storageInsert(formData.imageFile[0], docRef, id);
         }
       } else {
-        const doc = await addDoc(collection(db, "tweets"), {
+        const tweetDoc = await addDoc(collection(db, "tweets"), {
           tweet: formData.tweet,
           createdAt: Date.now(),
           userName: user.displayName || "익명",
           userId: user.uid,
         });
+        if (user.photoURL)
+          await updateDoc(doc(db, "tweets", tweetDoc.id), { avatar: user.photoURL });
         if (formData.imageFile.length !== 0) {
-          storageInsert(formData.imageFile[0], doc, doc.id);
+          storageInsert(formData.imageFile[0], tweetDoc, tweetDoc.id);
         }
       }
       router.replace("/");

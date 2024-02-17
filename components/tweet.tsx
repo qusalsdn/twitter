@@ -6,7 +6,7 @@ import { deleteDoc, doc } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
 import Link from "next/link";
 
-export default function Tweet({ id, tweet, photo, userId, userName }: ITweet) {
+export default function Tweet({ id, tweet, photo, userId, userName, avatar }: ITweet) {
   const user = auth.currentUser;
   const [loading, setLoading] = useState(false);
 
@@ -31,13 +31,13 @@ export default function Tweet({ id, tweet, photo, userId, userName }: ITweet) {
     <div className="border-2 border-solid p-5 rounded-3xl space-y-5">
       <div className="flex justify-between -mb-7">
         <div className="flex space-x-3">
-          {user?.photoURL ? (
+          {avatar ? (
             <Image
-              src={user.photoURL}
+              src={avatar}
               alt="avatar"
               width={100}
               height={100}
-              className="w-11 h-11 border-2 rounded-full p-2"
+              className="w-11 h-11 border-2 rounded-full"
             />
           ) : (
             <svg

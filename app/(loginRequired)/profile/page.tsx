@@ -57,8 +57,8 @@ export default function Profile() {
           );
           unsubscribe = onSnapshot(tweetsQuery, (snapshot) => {
             const tweets = snapshot.docs.map((doc) => {
-              const { tweet, photo, userId, userName, createdAt } = doc.data();
-              return { id: doc.id, tweet, photo, userId, userName, createdAt };
+              const { tweet, photo, userId, userName, createdAt, avatar } = doc.data();
+              return { id: doc.id, tweet, photo, userId, userName, createdAt, avatar };
             });
             setTweets(tweets);
           });
@@ -75,6 +75,16 @@ export default function Profile() {
     };
   }, [user]);
 
+  const tweetsRefsReturn = async () => {
+    if (!user) return;
+    const tweetsQuery = query(collection(db, "tweets"), where("userId", "==", user.uid));
+    const snapShop = await getDocs(tweetsQuery);
+    const docRefs = snapShop.docs.map((doc) => {
+      return doc.ref;
+    });
+    return docRefs;
+  };
+
   const onChangeAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
     if (!user) return;
@@ -85,6 +95,11 @@ export default function Profile() {
       const avatarUrl = await getDownloadURL(result.ref);
       await updateProfile(user, { photoURL: avatarUrl });
       setAvatar(avatarUrl);
+      const docRefs = await tweetsRefsReturn();
+      if (docRefs)
+        for (const ref of docRefs) {
+          await updateDoc(ref, { avatar: avatarUrl });
+        }
     }
   };
 
@@ -95,14 +110,11 @@ export default function Profile() {
       setLoading(true);
       await updateProfile(user, { displayName: formData.userName });
       // 아래는 트윗의 userName을 변경하기 위해 작성
-      const tweetsQuery = query(collection(db, "tweets"), where("userId", "==", user.uid));
-      const snapShop = await getDocs(tweetsQuery);
-      const docRefs = snapShop.docs.map((doc) => {
-        return doc.ref;
-      });
-      for (const ref of docRefs) {
-        await updateDoc(ref, { userName: formData.userName });
-      }
+      const docRefs = await tweetsRefsReturn();
+      if (docRefs)
+        for (const ref of docRefs) {
+          await updateDoc(ref, { userName: formData.userName });
+        }
       setInputVisible(false);
       router.refresh();
     } catch (e) {
@@ -110,6 +122,11 @@ export default function Profile() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onClickavatarDel = async () => {
+    const ok = confirm("정말로 프로필 사진을 삭제하시겠습니까?");
+    if (ok && user) await updateProfile(user, { photoURL: null });
   };
 
   return (
@@ -148,6 +165,16 @@ export default function Profile() {
               className="hidden"
               {...register("imageFile", { onChange: onChangeAvatar })}
             />
+            {user?.photoURL && (
+              <button title="프로필 사진 삭제" onClick={onClickavatarDel}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="w-6 h-6">
+                  <path
+                    fill="#ffffff"
+                    d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"
+                  />
+                </svg>
+              </button>
+            )}
             {inputVisible ? (
               <form
                 onSubmit={handleSubmit(onSubmitUserNameChange)}
