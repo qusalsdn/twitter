@@ -1,6 +1,7 @@
 "use client";
 
 import GithubBtn from "@/components/github-btn";
+import GoogleBtn from "@/components/google-btn";
 import { FirebaseError } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 import Link from "next/link";
@@ -76,6 +77,7 @@ export default function SignIn() {
           <Link href={"/signUp"} className="font-bold">
             계정이 없으신가요? &rarr;
           </Link>
+          <GoogleBtn />
           <GithubBtn />
         </div>
       )}
