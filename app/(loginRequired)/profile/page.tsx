@@ -3,8 +3,17 @@
 import { ITweet } from "@/components/timeline";
 import Tweet from "@/components/tweet";
 import { db, storage } from "@/src/firebase";
-import { getAuth, onAuthStateChanged, updateProfile } from "firebase/auth";
-import { collection, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore";
+import { Unsubscribe, getAuth, onAuthStateChanged, updateProfile } from "firebase/auth";
+import {
+  collection,
+  getDocs,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -34,33 +43,36 @@ export default function Profile() {
     } else router.push("/signIn");
   });
 
-  const fetchTweets = async () => {
-    try {
-      setLoading(true);
-      if (user) {
-        const tweetsQuery = query(
-          collection(db, "tweets"),
-          where("userId", "==", user?.uid),
-          orderBy("createdAt", "desc"),
-          limit(25)
-        );
-        const snapShop = await getDocs(tweetsQuery);
-        const tweets = snapShop.docs.map((doc) => {
-          const { tweet, photo, userId, userName, createdAt } = doc.data();
-          return { id: doc.id, tweet, photo, userId, userName, createdAt };
-        });
-        setTweets(tweets);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    let unsubscribe: Unsubscribe | null = null;
+    const fetchTweets = async () => {
+      try {
+        setLoading(true);
+        if (user) {
+          const tweetsQuery = query(
+            collection(db, "tweets"),
+            where("userId", "==", user?.uid),
+            orderBy("createdAt", "desc"),
+            limit(25)
+          );
+          unsubscribe = onSnapshot(tweetsQuery, (snapshot) => {
+            const tweets = snapshot.docs.map((doc) => {
+              const { tweet, photo, userId, userName, createdAt } = doc.data();
+              return { id: doc.id, tweet, photo, userId, userName, createdAt };
+            });
+            setTweets(tweets);
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchTweets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      unsubscribe && unsubscribe();
+    };
   }, [user]);
 
   const onChangeAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
