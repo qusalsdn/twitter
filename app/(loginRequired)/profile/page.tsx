@@ -6,6 +6,7 @@ import { db, storage } from "@/src/firebase";
 import { Unsubscribe, getAuth, onAuthStateChanged, updateProfile } from "firebase/auth";
 import {
   collection,
+  deleteField,
   getDocs,
   limit,
   onSnapshot,
@@ -14,7 +15,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -37,6 +38,7 @@ export default function Profile() {
   const user = auth.currentUser;
   const [avatar, setAvatar] = useState(user?.photoURL);
   onAuthStateChanged(auth, (user) => {
+    console.log(user?.photoURL);
     if (user) {
       setLoginCheck(true);
       setAvatar(user.photoURL);
@@ -124,9 +126,19 @@ export default function Profile() {
     }
   };
 
-  const onClickavatarDel = async () => {
+  const onClickAvatarDel = async () => {
     const ok = confirm("정말로 프로필 사진을 삭제하시겠습니까?");
-    if (ok && user) await updateProfile(user, { photoURL: null });
+    if (ok && user) {
+      await updateProfile(user, { photoURL: "" });
+      const docRefs = await tweetsRefsReturn();
+      if (docRefs) {
+        for (const ref of docRefs) {
+          await updateDoc(ref, { avatar: deleteField() });
+        }
+      }
+      const locationRef = ref(storage, `avatar/${user.uid}-${user?.displayName}`);
+      deleteObject(locationRef);
+    }
   };
 
   return (
@@ -166,7 +178,7 @@ export default function Profile() {
               {...register("imageFile", { onChange: onChangeAvatar })}
             />
             {user?.photoURL && (
-              <button title="프로필 사진 삭제" onClick={onClickavatarDel}>
+              <button title="프로필 사진 삭제" onClick={onClickAvatarDel}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="w-6 h-6">
                   <path
                     fill="#ffffff"
