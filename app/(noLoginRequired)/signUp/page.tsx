@@ -2,10 +2,15 @@
 
 import GithubBtn from "@/components/github-btn";
 import { FirebaseError } from "firebase/app";
-import { createUserWithEmailAndPassword, getAuth, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  onAuthStateChanged,
+  updateProfile,
+} from "firebase/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface Inputs {
@@ -21,17 +26,17 @@ const errors: any = {
 
 export default function SignUp() {
   const router = useRouter();
-  const auth = getAuth();
-  const user = auth.currentUser;
   const { register, handleSubmit } = useForm<Inputs>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loginCheck, setLoginCheck] = useState(false);
 
-  useEffect(() => {
-    if (user !== null) router.replace("/");
-    else setLoginCheck(true);
-  }, [router, user]);
+  const auth = getAuth();
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setLoginCheck(true);
+    } else router.push("/");
+  });
 
   const onSubmit = async (formData: Inputs) => {
     if (loading || formData.name === "" || formData.email === "" || formData.password === "")

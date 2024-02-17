@@ -1,21 +1,19 @@
 "use client";
 
 import PostTweetForm from "@/components/post-tweet-form";
-import { auth } from "@/src/firebase";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Edit({ params: { id } }: { params: { id: string } }) {
   const router = useRouter();
-  const auth = getAuth();
-  const user = auth.currentUser;
   const [loginCheck, setLoginCheck] = useState(false);
 
-  useEffect(() => {
-    if (user === null) router.push("/signIn");
-    else setLoginCheck(true);
-  }, [router, user]);
+  const auth = getAuth();
+  onAuthStateChanged(auth, (user) => {
+    if (user) setLoginCheck(true);
+    else router.push("/signIn");
+  });
 
   return (
     <div className="w-[1000px]">

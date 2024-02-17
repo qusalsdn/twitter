@@ -3,7 +3,7 @@
 import { ITweet } from "@/components/timeline";
 import Tweet from "@/components/tweet";
 import { db, storage } from "@/src/firebase";
-import { getAuth, updateProfile } from "firebase/auth";
+import { getAuth, onAuthStateChanged, updateProfile } from "firebase/auth";
 import { collection, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import Image from "next/image";
@@ -18,30 +18,39 @@ interface FormData {
 
 export default function Profile() {
   const router = useRouter();
-  const auth = getAuth();
-  const user = auth.currentUser;
   const { register, handleSubmit, setValue } = useForm<FormData>();
   const [loginCheck, setLoginCheck] = useState(false);
-  const [avatar, setAvatar] = useState(user?.photoURL);
   const [tweets, setTweets] = useState<ITweet[]>([]);
   const [inputVisible, setInputVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const [avatar, setAvatar] = useState(user?.photoURL);
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setLoginCheck(true);
+      setAvatar(user.photoURL);
+    } else router.push("/signIn");
+  });
+
   const fetchTweets = async () => {
     try {
       setLoading(true);
-      const tweetsQuery = query(
-        collection(db, "tweets"),
-        where("userId", "==", user?.uid),
-        orderBy("createdAt", "desc"),
-        limit(25)
-      );
-      const snapShop = await getDocs(tweetsQuery);
-      const tweets = snapShop.docs.map((doc) => {
-        const { tweet, photo, userId, userName, createdAt } = doc.data();
-        return { id: doc.id, tweet, photo, userId, userName, createdAt };
-      });
-      setTweets(tweets);
+      if (user) {
+        const tweetsQuery = query(
+          collection(db, "tweets"),
+          where("userId", "==", user?.uid),
+          orderBy("createdAt", "desc"),
+          limit(25)
+        );
+        const snapShop = await getDocs(tweetsQuery);
+        const tweets = snapShop.docs.map((doc) => {
+          const { tweet, photo, userId, userName, createdAt } = doc.data();
+          return { id: doc.id, tweet, photo, userId, userName, createdAt };
+        });
+        setTweets(tweets);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -50,12 +59,9 @@ export default function Profile() {
   };
 
   useEffect(() => {
-    console.log(user);
-    if (user === null) router.replace("/signIn");
-    else setLoginCheck(true);
     fetchTweets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router, user]);
+  }, [user]);
 
   const onChangeAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
