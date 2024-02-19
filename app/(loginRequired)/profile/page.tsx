@@ -3,10 +3,12 @@
 import { ITweet } from "@/components/timeline";
 import Tweet from "@/components/tweet";
 import { db, storage } from "@/src/firebase";
-import { Unsubscribe, getAuth, onAuthStateChanged, updateProfile } from "firebase/auth";
+import { Unsubscribe, deleteUser, getAuth, onAuthStateChanged, updateProfile } from "firebase/auth";
 import {
   collection,
+  deleteDoc,
   deleteField,
+  doc,
   getDocs,
   limit,
   onSnapshot,
@@ -38,7 +40,6 @@ export default function Profile() {
   const user = auth.currentUser;
   const [avatar, setAvatar] = useState(user?.photoURL);
   onAuthStateChanged(auth, (user) => {
-    console.log(user?.photoURL);
     if (user) {
       setLoginCheck(true);
       setAvatar(user.photoURL);
@@ -92,7 +93,7 @@ export default function Profile() {
     if (!user) return;
     if (files && files.length === 1) {
       const file = files[0];
-      const locationRef = ref(storage, `avatar/${user.uid}-${user?.displayName}`);
+      const locationRef = ref(storage, `avatar/${user.uid}-${user.displayName}`);
       const result = await uploadBytes(locationRef, file);
       const avatarUrl = await getDownloadURL(result.ref);
       await updateProfile(user, { photoURL: avatarUrl });
@@ -136,8 +137,33 @@ export default function Profile() {
           await updateDoc(ref, { avatar: deleteField() });
         }
       }
-      const locationRef = ref(storage, `avatar/${user.uid}-${user?.displayName}`);
-      deleteObject(locationRef);
+      const locationRef = ref(storage, `avatar/${user.uid}-${user.displayName}`);
+      await deleteObject(locationRef);
+    }
+  };
+
+  const onClickUserDel = async () => {
+    const ok = confirm("정말 계정을 삭제하시겠습니까?");
+    if (ok && user) {
+      if (user.photoURL?.includes("avatar")) {
+        const locationRef = ref(storage, `avatar/${user.uid}-${user.displayName}`);
+        await deleteObject(locationRef);
+      }
+      const tweetsQuery = query(collection(db, "tweets"), where("userId", "==", user.uid));
+      const tweets = await getDocs(tweetsQuery);
+      const docRefs = tweets.docs.map((tweet) => {
+        const { photo } = tweet.data();
+        return { tweetId: tweet.id, photo };
+      });
+      for (const tweet of docRefs) {
+        await deleteDoc(doc(db, "tweets", tweet.tweetId));
+        if (tweet.photo) {
+          const photoRef = ref(storage, `tweets/${user.uid}-${user.displayName}/${tweet.tweetId}`);
+          await deleteObject(photoRef);
+        }
+      }
+      await deleteUser(user);
+      router.replace("/signIn");
     }
   };
 
@@ -146,37 +172,50 @@ export default function Profile() {
       {loginCheck && (
         <div className="flex flex-col space-y-3 pr-36">
           <div className="flex flex-col items-center space-y-3">
-            {Boolean(avatar) ? (
-              <label htmlFor="avatar" className="cursor-pointer">
-                <Image
-                  src={`${avatar}`}
-                  alt="avatar"
-                  width={100}
-                  height={100}
-                  className="rounded-full w-20 h-20"
+            <div className="w-full flex items-center justify-between">
+              <div></div>
+              <div className="pl-7">
+                {Boolean(avatar) ? (
+                  <label htmlFor="avatar" className="cursor-pointer">
+                    <Image
+                      src={`${avatar}`}
+                      alt="avatar"
+                      width={100}
+                      height={100}
+                      className="rounded-full w-20 h-20"
+                    />
+                  </label>
+                ) : (
+                  <label htmlFor="avatar" className="cursor-pointer">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 448 512"
+                      className="w-14 h-14 p-3 rounded-full bg-[#0ea5e9]"
+                    >
+                      <path
+                        fill="#ffffff"
+                        d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"
+                      />
+                    </svg>
+                  </label>
+                )}
+                <input
+                  type="file"
+                  id="avatar"
+                  accept="image/*"
+                  className="hidden"
+                  {...register("imageFile", { onChange: onChangeAvatar })}
                 />
-              </label>
-            ) : (
-              <label htmlFor="avatar" className="cursor-pointer">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 448 512"
-                  className="w-14 h-14 p-3 rounded-full bg-[#0ea5e9]"
-                >
+              </div>
+              <button type="button" onClick={onClickUserDel} title="계정 삭제">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" className="w-7 h-7">
                   <path
-                    fill="#ffffff"
-                    d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z"
+                    fill="#e96d6d"
+                    d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L353.3 251.6C407.9 237 448 187.2 448 128C448 57.3 390.7 0 320 0C250.2 0 193.5 55.8 192 125.2L38.8 5.1zM264.3 304.3C170.5 309.4 96 387.2 96 482.3c0 16.4 13.3 29.7 29.7 29.7H514.3c3.9 0 7.6-.7 11-2.1l-261-205.6z"
                   />
                 </svg>
-              </label>
-            )}
-            <input
-              type="file"
-              id="avatar"
-              accept="image/*"
-              className="hidden"
-              {...register("imageFile", { onChange: onChangeAvatar })}
-            />
+              </button>
+            </div>
             {user?.photoURL && (
               <button title="프로필 사진 삭제" onClick={onClickAvatarDel}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" className="w-6 h-6">
